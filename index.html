@@ -173,7 +173,7 @@
 
       if (((st.MLH1 === 'loss' || st.MLH1 === 'partial') && st.PMS2 === 'retained' && st.MSH2 === 'retained' && st.MSH6 === 'retained') ||
           ((st.MSH2 === 'loss' || st.MSH2 === 'partial') && st.MLH1 === 'retained' && st.PMS2 === 'retained' && st.MSH6 === 'retained')) {
-        warning.textContent = '⚠️ Uwaga: izolowana (także częściowa) utrata MLH1 lub MSH2 nie jest oczekiwanym wzorcem utraty – zalecana weryfikacja techniczna.';
+        warning.textContent = '⚠️ Uwaga: izolowana utrata MLH1 lub MSH2 nie jest oczekiwanym wzorcem utraty – zalecana weryfikacja techniczna.';
         warning.style.display = 'block';
       } else {
         warning.style.display = 'none';
