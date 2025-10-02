@@ -161,12 +161,9 @@
       let retTxt = retained.length>0?`przy zachowanej ekspresji ${retained.join(' i ')}`:'';
       summary = `W komórkach nowotworowych stwierdzono ${[lostTxt,partTxt,retTxt].filter(Boolean).join(', ')}. Utrata ekspresji wyżej opisanych białek stanowi immunohistochemiczny wykładnik zaburzenia systemu naprawy nieprawidłowo sparowanych nukleotydów - dMMR.`;
 
-      if(lost.includes('MLH1') || (lost.includes('PMS2') && !lost.includes('MLH1'))){
-        if(lost.includes('MLH1')){
-          summary += "\nWskazane badanie w kierunku hipermetylacji promotora genu MLH1 celem zróżnicowania z zaburzeniem linii germinalnej (zespołem Lyncha lub zespołami pokrewnymi).";
-        } else {
-          summary += "\nZaleca się poradnictwo w zakresie genetyki klinicznej celem przeprowadzenia badania genetycznego - potwierdzenia obecności zaburzeń w linii germinalnej (zespoł Lyncha lub zespoły pokrewne).";
-        }
+      // ujednolicone zasady dla utrat całkowitych i częściowych
+      if((lost.includes('MLH1') || partial.includes('MLH1')) && !(lost.includes('MSH6') || partial.includes('MSH6'))){
+        summary += "\nWskazane badanie w kierunku hipermetylacji promotora genu MLH1 celem zróżnicowania z zaburzeniem linii germinalnej (zespołem Lyncha lub zespołami pokrewnymi).";
       } else {
         summary += "\nZaleca się poradnictwo w zakresie genetyki klinicznej celem przeprowadzenia badania genetycznego - potwierdzenia obecności zaburzeń w linii germinalnej (zespoł Lyncha lub zespoły pokrewne).";
       }
@@ -174,8 +171,9 @@
       badge.textContent = 'dMMR';
       badge.className = 'pill bad';
 
-      if ((st.MLH1 === 'loss' && st.PMS2 === 'retained') || (st.MSH2 === 'loss' && st.MSH6 === 'retained')) {
-        warning.textContent = '⚠️ Uwaga: izolowana utrata MLH1 lub MSH2 nie jest oczekiwanym wzorcem utraty – zalecana weryfikacja techniczna.';
+      if (((st.MLH1 === 'loss' || st.MLH1 === 'partial') && st.PMS2 === 'retained' && st.MSH2 === 'retained' && st.MSH6 === 'retained') ||
+          ((st.MSH2 === 'loss' || st.MSH2 === 'partial') && st.MLH1 === 'retained' && st.PMS2 === 'retained' && st.MSH6 === 'retained')) {
+        warning.textContent = '⚠️ Uwaga: izolowana (także częściowa) utrata MLH1 lub MSH2 nie jest oczekiwanym wzorcem utraty – zalecana weryfikacja techniczna.';
         warning.style.display = 'block';
       } else {
         warning.style.display = 'none';
