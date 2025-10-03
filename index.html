@@ -23,40 +23,48 @@
   .pill.bad{border-color:var(--bad); color:var(--bad)}
   .warn{color:var(--warn); font-size:14px; margin-top:8px;}
   pre{background:#fafafa;border:1px solid #eee;border-radius:8px;padding:8px;white-space:pre-wrap}
+  .flex-cols{display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap}
+  .flex-cols .card{flex:1; min-width:300px}
 </style>
 </head>
 <body>
-  <h1>Status genu POLE</h1>
-  <div class="card">
-    <div class="row"><label><input type="radio" name="pole" value="neg" checked>Nie wykryto wariantu patogennego (mutacji) genu POLE</label></div>
-    <div class="row"><label><input type="radio" name="pole" value="pos">Wykryto wariant patogenny (mutację) genu POLE</label></div>
+<div class="flex-cols">
+  <div style="flex:1">
+    <h1>Status genu POLE</h1>
+    <div class="card">
+      <div class="row"><label><input type="radio" name="pole" value="neg" checked>Nie wykryto wariantu patogennego (mutacji) genu POLE</label></div>
+      <div class="row"><label><input type="radio" name="pole" value="pos">Wykryto wariant patogenny (mutację) genu POLE</label></div>
+    </div>
   </div>
 
-  <h1>Status białek MMR (IHC)</h1>
-  <div class="card">
-    <div class="row"><span class="muted">Zaznacz</span> „Utrata” lub „Częściowa” (brak zaznaczenia = ekspresja zachowana).</div>
-    <div class="row"><span class="marker">MLH1</span>
-      <label><input type="checkbox" data-marker="MLH1" data-type="loss">Utrata</label>
-      <label><input type="checkbox" data-marker="MLH1" data-type="partial">Częściowa</label>
+  <div style="flex:2">
+    <h1>Status białek MMR (IHC)</h1>
+    <div class="card">
+      <div class="row"><span class="muted">Zaznacz</span> „Utrata” lub „Częściowa” (brak zaznaczenia = ekspresja zachowana).</div>
+      <div class="row"><span class="marker">MLH1</span>
+        <label><input type="checkbox" data-marker="MLH1" data-type="loss">Utrata</label>
+        <label><input type="checkbox" data-marker="MLH1" data-type="partial">Częściowa</label>
+      </div>
+      <div class="row"><span class="marker">PMS2</span>
+        <label><input type="checkbox" data-marker="PMS2" data-type="loss">Utrata</label>
+        <label><input type="checkbox" data-marker="PMS2" data-type="partial">Częściowa</label>
+      </div>
+      <div class="row"><span class="marker">MSH2</span>
+        <label><input type="checkbox" data-marker="MSH2" data-type="loss">Utrata</label>
+        <label><input type="checkbox" data-marker="MSH2" data-type="partial">Częściowa</label>
+      </div>
+      <div class="row"><span class="marker">MSH6</span>
+        <label><input type="checkbox" data-marker="MSH6" data-type="loss">Utrata</label>
+        <label><input type="checkbox" data-marker="MSH6" data-type="partial">Częściowa</label>
+      </div>
+      <div class="row">
+        <span class="muted">Podsumowanie:</span>
+        <span id="badge" class="pill ok">pMMR</span>
+      </div>
+      <div id="warning" class="warn" style="display:none"></div>
     </div>
-    <div class="row"><span class="marker">PMS2</span>
-      <label><input type="checkbox" data-marker="PMS2" data-type="loss">Utrata</label>
-      <label><input type="checkbox" data-marker="PMS2" data-type="partial">Częściowa</label>
-    </div>
-    <div class="row"><span class="marker">MSH2</span>
-      <label><input type="checkbox" data-marker="MSH2" data-type="loss">Utrata</label>
-      <label><input type="checkbox" data-marker="MSH2" data-type="partial">Częściowa</label>
-    </div>
-    <div class="row"><span class="marker">MSH6</span>
-      <label><input type="checkbox" data-marker="MSH6" data-type="loss">Utrata</label>
-      <label><input type="checkbox" data-marker="MSH6" data-type="partial">Częściowa</label>
-    </div>
-    <div class="row">
-      <span class="muted">Podsumowanie:</span>
-      <span id="badge" class="pill ok">pMMR</span>
-    </div>
-    <div id="warning" class="warn" style="display:none"></div>
   </div>
+</div>
 
   <h1>Status p53 (IHC)</h1>
   <div class="card">
@@ -73,9 +81,7 @@
     <div class="actions">
       <button class="btn primary" id="copyBtn">Kopiuj do schowka</button>
       <button class="btn" id="resetBtn">Wyczyść zaznaczenia</button>
-      <button class="btn" id="testBtn" title="Uruchom testy">Testy</button>
     </div>
-    <pre id="testOut" class="muted" style="display:none"></pre>
   </div>
 
 <script>
@@ -87,8 +93,6 @@
   const badge = document.getElementById('badge');
   const copyBtn = document.getElementById('copyBtn');
   const resetBtn = document.getElementById('resetBtn');
-  const testBtn = document.getElementById('testBtn');
-  const testOut = document.getElementById('testOut');
   const warning = document.getElementById('warning');
 
   boxes.forEach(cb=>{
@@ -145,7 +149,6 @@
     let header = '';
     let details = '';
     let summary = '';
-
     let classification = '';
 
     if(allRetained){
@@ -213,57 +216,9 @@
     return `${classification}\n\n${poleTxt}\n\n${header}\n${details}\n\n${summary}\n\n${p53txt}\n\nBadanie wykonano na preparatach z bloczka parafinowego nr: [].`;
   }
 
-  function update(){
-    out.value = interpret();
-  }
+  function update(){ out.value = interpret(); }
 
-  // — proste testy regresyjne —
-  function setState({mlh1='retained',pms2='retained',msh2='retained',msh6='retained',p53='wt',pole='neg'}){
-    const map = {loss:'loss', partial:'partial'};
-    ['MLH1','PMS2','MSH2','MSH6'].forEach(m=>{
-      document.querySelector(`input[data-marker="${m}"][data-type="loss"]`).checked = false;
-      document.querySelector(`input[data-marker="${m}"][data-type="partial"]`).checked = false;
-    });
-    if(map[mlh1]) document.querySelector(`input[data-marker="MLH1"][data-type="${map[mlh1]}"]`).checked = true;
-    if(map[pms2]) document.querySelector(`input[data-marker="PMS2"][data-type="${map[pms2]}"]`).checked = true;
-    if(map[msh2]) document.querySelector(`input[data-marker="MSH2"][data-type="${map[msh2]}"]`).checked = true;
-    if(map[msh6]) document.querySelector(`input[data-marker="MSH6"][data-type="${map[msh6]}"]`).checked = true;
-    document.querySelector(`input[name="p53"][value="${p53}"]`).checked = true;
-    document.querySelector(`input[name="pole"][value="${pole}"]`).checked = true;
-    update();
-  }
-
-  function runTests(){
-    const results = [];
-
-    // T1: domyślny NSMP
-    setState({});
-    results.push(out.value.includes('NSMP.') ? 'T1 NSMP: PASS' : 'T1 NSMP: FAIL');
-
-    // T2: MLH1 loss bez PMS2 → ostrzeżenie + HM MLH1 + dMMR
-    setState({mlh1:'loss'});
-    results.push((warning.style.display==='block') ? 'T2 isoMLH1 warn: PASS' : 'T2 isoMLH1 warn: FAIL');
-    results.push(out.value.includes('hipermetylacji promotora genu MLH1') ? 'T2 HM line: PASS' : 'T2 HM line: FAIL');
-
-    // T3: MLH1 loss + MSH6 loss → poradnictwo (nie HM)
-    setState({mlh1:'loss',msh6:'loss'});
-    results.push(out.value.includes('poradnictwo w zakresie genetyki klinicznej') ? 'T3 counseling: PASS' : 'T3 counseling: FAIL');
-
-    // T4: iso MSH2 partial → ostrzeżenie i poradnictwo
-    setState({msh2:'partial'});
-    results.push((warning.style.display==='block') ? 'T4 isoMSH2 warn: PASS' : 'T4 isoMSH2 warn: FAIL');
-    results.push(out.value.includes('poradnictwo w zakresie genetyki klinicznej') ? 'T4 counseling: PASS' : 'T4 counseling: FAIL');
-
-    // T5: POLE positive overrides
-    setState({mlh1:'loss',pole:'pos'});
-    results.push(out.value.includes('POLEmut.') ? 'T5 POLE priority: PASS' : 'T5 POLE priority: FAIL');
-
-    testOut.style.display='block';
-    testOut.textContent = results.join('\n');
-  }
-
-  document.getElementById('testBtn').addEventListener('click', runTests);
-
+  // inicjalizacja
   update();
 })();
 </script>
